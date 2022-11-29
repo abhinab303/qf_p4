@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import cv2
 import matplotlib.image as mpimg
 import math
+import pandas as pd
 
 test_img = "att_faces/s1/1.pgm"
 
@@ -80,12 +81,13 @@ if __name__ == "__main__":
 
     # PCA: Part 2:
     # reconstruction with increasing number of components:
-    # for n in range(1, images.shape[1]):
+
+    # Plot some reconstructed images:
     plt.figure()
-    for n in range(1, 9):
+    for n in range(50, 500, 50):
         reconstructed_images = reconstruct(x_norm, eigen_vectors, n)
-        ax = plt.subplot(3, 3, n)
-        img = reconstructed_images[0].reshape(112, 92)
+        ax = plt.subplot(4, 4, int(n/50))
+        img = reconstructed_images[int(n/50)].reshape(112, 92)
         plt.imshow(img, cmap="gray")
         plt.axis('off')
         ax.set_aspect('auto')
@@ -93,3 +95,21 @@ if __name__ == "__main__":
     plt.subplots_adjust(wspace=0.2, hspace=0.3)
     plt.savefig('result/reconstruct.png', bbox_inches='tight')
 
+    # reconstruction error calculation:
+    result_dict = {
+        "N": [],
+        "MSE": []
+    }
+    mse_flag = True
+    for n in range(1, images.shape[1]):
+        reconstructed_images = reconstruct(x_norm, eigen_vectors, n)
+        mse = (np.square(x_norm - reconstructed_images)).mean(axis=None)
+        if mse < 0.001 and mse_flag:
+            print("MSE lt 0.001: n = ", n)
+            mse_flag = False
+        result_dict["N"].append(n)
+        result_dict["MSE"].append(mse)
+
+    error_df = pd.DataFrame.from_dict(result_dict)
+    csv_file_path = "result/mse_vs_n.csv"
+    error_df.to_csv(csv_file_path, index=False)
