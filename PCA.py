@@ -4,6 +4,7 @@ import cv2
 import matplotlib.image as mpimg
 import math
 import pandas as pd
+from tqdm import tqdm
 
 test_img = "att_faces/s1/1.pgm"
 
@@ -84,10 +85,10 @@ if __name__ == "__main__":
 
     # Plot some reconstructed images:
     plt.figure()
-    for n in range(50, 500, 50):
+    for n in range(50, 850, 50):
         reconstructed_images = reconstruct(x_norm, eigen_vectors, n)
         ax = plt.subplot(4, 4, int(n/50))
-        img = reconstructed_images[int(n/50)].reshape(112, 92)
+        img = reconstructed_images[int(n*2/50)].reshape(112, 92)
         plt.imshow(img, cmap="gray")
         plt.axis('off')
         ax.set_aspect('auto')
@@ -101,7 +102,7 @@ if __name__ == "__main__":
         "MSE": []
     }
     mse_flag = True
-    for n in range(1, images.shape[1]):
+    for n in tqdm(range(1, images.shape[1])):
         reconstructed_images = reconstruct(x_norm, eigen_vectors, n)
         mse = (np.square(x_norm - reconstructed_images)).mean(axis=None)
         if mse < 0.001 and mse_flag:
