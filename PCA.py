@@ -1,10 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import cv2
+# import cv2
 import matplotlib.image as mpimg
-import math
+# import math
 import pandas as pd
 from tqdm import tqdm
+import pdb
 
 test_img = "att_faces/s1/1.pgm"
 
@@ -65,6 +66,7 @@ if __name__ == "__main__":
     images = read_images()
     x_norm = images - np.mean(images , axis = 0)
     # get eigen values:
+    print("generating Eigen vectors... ")
     eigen_val, eigen_vectors = get_eigen(images)
     vars = eigen_val/sum(eigen_val)
 
@@ -101,16 +103,19 @@ if __name__ == "__main__":
         "N": [],
         "MSE": []
     }
-    mse_flag = True
-    for n in tqdm(range(1, images.shape[1])):
+
+    # max_iter = images.shape[1]
+    max_iter = 1000
+    for n in tqdm(range(1, max_iter)):
         reconstructed_images = reconstruct(x_norm, eigen_vectors, n)
         mse = (np.square(x_norm - reconstructed_images)).mean(axis=None)
-        if mse < 0.001 and mse_flag:
-            print("MSE lt 0.001: n = ", n)
-            mse_flag = False
         result_dict["N"].append(n)
         result_dict["MSE"].append(mse)
+        error_df = pd.DataFrame.from_dict(result_dict)
+        csv_file_path = "result/mse_vs_n.csv"
+        error_df.to_csv(csv_file_path, index=False)
+        if mse < 0.001:
+            print("MSE is less than 0.001 at Number of components = ", n)
+            break
 
-    error_df = pd.DataFrame.from_dict(result_dict)
-    csv_file_path = "result/mse_vs_n.csv"
-    error_df.to_csv(csv_file_path, index=False)
+    # pdb.set_trace()
